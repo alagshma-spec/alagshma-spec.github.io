@@ -2,317 +2,282 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>عمار | مطوّر تطبيقات وألعاب</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NEON DASH — نيون داش</title>
 <style>
-  :root{
-    --bg:#0a0c16;
-    --bg-soft:#11142280;
-    --panel:#12152580;
-    --cyan:#00e5ff;
-    --magenta:#ff2e92;
-    --gold:#d4af37;
-    --text:#e8ecf4;
-    --text-dim:#8891a8;
-    --line:#232840;
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    height:100%; overflow:hidden; background:#05060d;
+    font-family:'Tajawal','Segoe UI',sans-serif; color:#e8ecf4;
+    touch-action:none;
   }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  html{scroll-behavior:smooth;}
-  body{
-    background:
-      radial-gradient(ellipse 900px 500px at 85% -10%, #1a1240 0%, transparent 60%),
-      radial-gradient(ellipse 700px 500px at 10% 10%, #001a2e 0%, transparent 55%),
-      var(--bg);
-    color:var(--text);
-    font-family:'Almarai', sans-serif;
-    line-height:1.7;
-    overflow-x:hidden;
+  #wrap{
+    position:relative; width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
   }
-  h1,h2,h3,.disp{font-family:'Tajawal', sans-serif;}
-  a{color:inherit; text-decoration:none;}
-  .wrap{max-width:1100px; margin:0 auto; padding:0 24px;}
-
-  /* nav */
-  nav{
-    position:sticky; top:0; z-index:50;
-    backdrop-filter:blur(14px);
-    background:#0a0c16cc;
-    border-bottom:1px solid var(--line);
+  canvas{
+    display:block; background:
+      radial-gradient(ellipse 700px 400px at 50% -10%, #1a1240 0%, transparent 60%),
+      #05060d;
+    touch-action:none;
   }
-  nav .wrap{display:flex; align-items:center; justify-content:space-between; height:64px;}
-  .brand{font-weight:900; font-size:1.15rem; letter-spacing:.5px;}
-  .brand span{color:var(--cyan);}
-  .navlinks{display:flex; gap:28px; font-size:.92rem; color:var(--text-dim);}
-  .navlinks a:hover{color:var(--cyan);}
-
-  /* hero */
-  .hero{padding:100px 0 80px; position:relative;}
-  .eyebrow{
-    display:inline-flex; align-items:center; gap:8px;
-    font-size:.78rem; color:var(--cyan); letter-spacing:1px;
-    border:1px solid #00e5ff33; padding:6px 14px; border-radius:999px;
-    background:#00e5ff0d; margin-bottom:22px;
+  #hud{
+    position:absolute; top:18px; left:0; right:0;
+    display:flex; justify-content:space-between; padding:0 22px;
+    pointer-events:none; z-index:5;
   }
-  .eyebrow::before{content:"●"; font-size:.6rem; animation:pulse 2s infinite;}
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-  .hero h1{
-    font-size:clamp(2.1rem, 5.5vw, 3.6rem);
-    font-weight:900; line-height:1.25; max-width:820px;
+  #score{font-size:1.5rem; font-weight:900; color:#00e5ff; text-shadow:0 0 14px #00e5ff88;}
+  #back{
+    position:absolute; top:16px; right:16px; z-index:10;
+    color:#8891a8; text-decoration:none; font-size:.85rem;
+    border:1px solid #232840; padding:7px 14px; border-radius:999px;
+    pointer-events:auto; background:#0a0c16cc;
   }
-  .hero h1 .glow{
-    background:linear-gradient(90deg, var(--cyan), var(--magenta));
+  #best{font-size:.85rem; color:#8891a8; text-align:left;}
+  #overlay{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    background:#05060dee; z-index:20; gap:18px; padding:20px;
+  }
+  #overlay h1{
+    font-size:clamp(1.8rem,7vw,2.6rem); font-weight:900;
+    background:linear-gradient(90deg,#00e5ff,#ff2e92);
     -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:2px;
   }
-  .hero p{color:var(--text-dim); font-size:1.08rem; max-width:600px; margin-top:22px;}
-  .hero-actions{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap;}
-  .btn{
-    padding:13px 26px; border-radius:10px; font-weight:700; font-size:.95rem;
-    display:inline-flex; align-items:center; gap:8px; transition:.25s;
-    border:1px solid transparent; cursor:pointer;
+  #overlay p{color:#8891a8; font-size:.95rem; max-width:320px; line-height:1.7;}
+  #overlay .big{font-size:2.4rem; font-weight:900; color:#fff;}
+  button{
+    font-family:inherit; font-size:1rem; font-weight:700;
+    padding:14px 38px; border-radius:12px; border:none; cursor:pointer;
+    background:linear-gradient(90deg,#00e5ff,#0091b3); color:#04141a;
+    box-shadow:0 8px 24px #00e5ff40;
   }
-  .btn-primary{background:linear-gradient(90deg,var(--cyan),#0091b3); color:#04141a;}
-  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 8px 24px #00e5ff40;}
-  .btn-ghost{border-color:var(--line); color:var(--text);}
-  .btn-ghost:hover{border-color:var(--cyan); color:var(--cyan);}
-
-  .stats{display:flex; gap:40px; margin-top:56px; flex-wrap:wrap;}
-  .stat b{font-family:'Tajawal'; font-size:1.7rem; display:block; color:var(--text);}
-  .stat span{font-size:.82rem; color:var(--text-dim);}
-
-  /* section heading */
-  .section{padding:70px 0;}
-  .section-head{margin-bottom:40px; max-width:600px;}
-  .kicker{color:var(--magenta); font-size:.8rem; font-weight:700; letter-spacing:2px; display:block; margin-bottom:10px;}
-  .section h2{font-size:clamp(1.6rem,3vw,2.2rem); font-weight:900;}
-  .section-head p{color:var(--text-dim); margin-top:12px; font-size:.98rem;}
-
-  /* apps grid */
-  .apps-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px;}
-  .card{
-    background:var(--panel); border:1px solid var(--line); border-radius:16px;
-    padding:26px; position:relative; overflow:hidden; transition:.3s;
+  #controls{
+    position:absolute; bottom:0; left:0; right:0; display:flex; z-index:8;
+    height:32%;
   }
-  .card::before{
-    content:""; position:absolute; inset:0; border-radius:16px; padding:1px;
-    background:linear-gradient(135deg, var(--c1), transparent 60%);
-    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite:xor; mask-composite:exclude;
-    opacity:0; transition:.3s;
+  .zone{flex:1;}
+  .hint{
+    position:absolute; bottom:14px; left:0; right:0; text-align:center;
+    color:#4b5470; font-size:.78rem; pointer-events:none; z-index:6;
   }
-  .card:hover{transform:translateY(-4px); box-shadow:0 14px 34px -12px var(--c1);}
-  .card:hover::before{opacity:1;}
-  .card .icon{
-    width:52px; height:52px; border-radius:13px; display:flex; align-items:center; justify-content:center;
-    font-size:1.4rem; margin-bottom:18px; background:var(--c1);
-  }
-  .card h3{font-size:1.15rem; margin-bottom:8px;}
-  .card p{color:var(--text-dim); font-size:.88rem; min-height:44px;}
-  .badge{
-    display:inline-block; font-size:.72rem; font-weight:700; padding:4px 11px;
-    border-radius:999px; margin-top:16px;
-  }
-  .badge.live{background:#00e5ff1f; color:var(--cyan);}
-  .badge.soon{background:#ff2e921f; color:var(--magenta);}
-  .card-link{display:block; margin-top:14px; font-size:.85rem; color:var(--text-dim);}
-  .card-link:hover{color:var(--text);}
-
-  /* about */
-  .about-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:50px; align-items:center;}
-  @media(max-width:760px){.about-grid{grid-template-columns:1fr;}}
-  .about-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:34px;
-  }
-  .about-card p{color:var(--text-dim); font-size:.98rem; margin-bottom:16px;}
-  .about-card p:last-child{margin-bottom:0;}
-  .tags{display:flex; gap:8px; flex-wrap:wrap; margin-top:22px;}
-  .tag{font-size:.78rem; padding:6px 13px; border:1px solid var(--line); border-radius:999px; color:var(--text-dim);}
-  .path-line{position:relative; padding-right:26px; border-right:2px solid var(--line);}
-  .step{padding-bottom:26px; position:relative;}
-  .step:last-child{padding-bottom:0;}
-  .step::before{
-    content:""; position:absolute; right:-33px; top:4px; width:12px; height:12px;
-    border-radius:50%; background:var(--cyan); box-shadow:0 0 0 4px #00e5ff22;
-  }
-  .step b{display:block; font-family:'Tajawal'; font-size:1rem; margin-bottom:4px;}
-  .step span{color:var(--text-dim); font-size:.86rem;}
-
-  /* ad slot */
-  .ad-slot{
-    border:1px dashed var(--line); border-radius:14px; padding:26px;
-    text-align:center; color:var(--text-dim); font-size:.85rem;
-    background:#ffffff05;
-  }
-
-  /* contact */
-  .contact-box{
-    background:linear-gradient(135deg,#12152f,#0d0f1c);
-    border:1px solid var(--line); border-radius:20px; padding:46px;
-    display:flex; justify-content:space-between; align-items:center; gap:30px; flex-wrap:wrap;
-  }
-  .contact-box h2{font-size:1.7rem; max-width:380px;}
-  .contact-actions{display:flex; gap:12px; flex-wrap:wrap;}
-
-  footer{border-top:1px solid var(--line); padding:34px 0; color:var(--text-dim); font-size:.85rem;}
-  footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;}
-
-  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+  .hidden{display:none !important;}
 </style>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8324380870405270" crossorigin="anonymous"></script>
 </head>
 <body>
-
-<nav>
-  <div class="wrap">
-    <div class="brand">عمّار <span>.dev</span></div>
-    <div class="navlinks">
-      <a href="#apps">التطبيقات</a>
-      <a href="#about">من أنا</a>
-      <a href="#contact">تواصل</a>
-    </div>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="hud">
+    <div id="best">أفضل نتيجة: <span id="bestVal">0</span></div>
+    <div id="score">0</div>
   </div>
-</nav>
-
-<header class="hero">
-  <div class="wrap">
-    <span class="eyebrow">متاح لتطوير مشاريع جديدة</span>
-    <h1>أبني تطبيقات وألعاب <span class="glow">تتكلم عربي</span><br>من جدّة إلى متجر بلاي</h1>
-    <p>مطوّر مستقل أصمم وأبرمج تطبيقات وألعاب موبايل باللغة العربية، من الفكرة إلى النشر على Google Play، مع التركيز على تجربة مستخدم نظيفة وهوية بصرية مميزة.</p>
-    <div class="hero-actions">
-      <a href="#apps" class="btn btn-primary">شوف أعمالي</a>
-      <a href="#contact" class="btn btn-ghost">تواصل معي</a>
-    </div>
-    <div class="stats">
-      <div class="stat"><b>٥</b><span>تطبيقات وألعاب قيد التطوير</span></div>
-      <div class="stat"><b>Flutter</b><span>+ HTML5 / Canvas</span></div>
-      <div class="stat"><b>جدّة</b><span>السعودية</span></div>
-    </div>
+  <a id="back" href="../../index.html">← رجوع</a>
+  <div class="hint">اضغط يمين أو يسار الشاشة للتحرك، أو استخدم أسهم الكيبورد</div>
+  <div id="controls">
+    <div class="zone" id="zoneLeft"></div>
+    <div class="zone" id="zoneRight"></div>
   </div>
-</header>
 
-<section class="section" id="apps">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="kicker">أعمالي</span>
-      <h2>تطبيقات وألعاب من صناعتي</h2>
-      <p>كل مشروع مبني بهوية عربية واضحة، من ألعاب الأركيد السريعة إلى تطبيق الأذكار اليومي. التطبيقات لسا ما نُشرت على المتاجر، وراح تكون متوفرة للتحميل مباشرة من هذا الموقع.</p>
-    </div>
-
-    <div class="apps-grid">
-
-      <div class="card" style="--c1:#d4af3733;">
-        <div class="icon" style="background:#d4af371f; color:var(--gold);">☾</div>
-        <h3>أذكار الصباح والمساء</h3>
-        <p>تطبيق إسلامي يومي للأذكار مبني بـ Flutter، بتصميم هادئ وتشغيل صوتي للأذكار.</p>
-        <span class="badge soon">قيد التطوير</span>
-        <a href="#" class="card-link">تحميل قريباً ←</a>
-      </div>
-
-      <div class="card" style="--c1:#00e5ff33;">
-        <div class="icon" style="background:#00e5ff1f; color:var(--cyan);">◈</div>
-        <h3>NEON DASH — نيون داش</h3>
-        <p>لعبة تفادي حارات بطابع نيون سريع الإيقاع، مبنية بـ HTML5 وجاهزة للنشر على Google Play.</p>
-        <span class="badge soon">قيد التطوير</span>
-        <a href="#" class="card-link">تحميل قريباً ←</a>
-      </div>
-
-      <div class="card" style="--c1:#ff2e9233;">
-        <div class="icon" style="background:#ff2e921f; color:var(--magenta);">◆</div>
-        <h3>متاهة</h3>
-        <p>لغز أسهم عربي الهوية، مصمم للتفوق على منافسين مثل Amaze GO! بتجربة أكثر سلاسة.</p>
-        <span class="badge soon">قيد التطوير</span>
-        <a href="#" class="card-link">تحميل قريباً ←</a>
-      </div>
-
-      <div class="card" style="--c1:#7c5cff33;">
-        <div class="icon" style="background:#7c5cff1f; color:#a78bff;">✺</div>
-        <h3>وَمَضة</h3>
-        <p>لغز مسار هاملتوني بهوية بصرية عربية، تحدٍّ ذهني بسيط الشكل وعميق اللعب.</p>
-        <span class="badge soon">قيد التطوير</span>
-        <a href="#" class="card-link">تحميل قريباً ←</a>
-      </div>
-
-      <div class="card" style="--c1:#00e5ff33;">
-        <div class="icon" style="background:#00e5ff1f; color:var(--cyan);">▲</div>
-        <h3>Sky Leap</h3>
-        <p>لعبة تسلّق لا نهائية بجسيمات بصرية وميكانيكية عملات وسرعة متصاعدة.</p>
-        <span class="badge soon">قيد التطوير</span>
-        <a href="#" class="card-link">تحميل قريباً ←</a>
-      </div>
-
-      <div class="card" style="--c1:#8891a833; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
-        <div class="icon" style="background:#8891a81f; color:var(--text-dim);">+</div>
-        <h3>مشروعك القادم</h3>
-        <p>عندك فكرة تطبيق أو لعبة؟ تواصل وخلّها حقيقة.</p>
-        <a href="#contact" class="card-link">ابدأ مشروع ←</a>
-      </div>
-
-    </div>
+  <div id="overlay">
+    <h1>NEON DASH</h1>
+    <p>تفادَ الحواجز المضيئة وابقَ بالحياة أطول ما تقدر. السرعة تزيد كل ما ارتفعت نقاطك.</p>
+    <button id="startBtn">ابدأ اللعب</button>
   </div>
-</section>
+</div>
 
-<section class="section" id="about">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="kicker">من أنا</span>
-      <h2>عن عمّار</h2>
-    </div>
-    <div class="about-grid">
-      <div class="about-card">
-        <p>مطوّر يمني مقيم في جدّة، أعمل بدوام ليلي وأبني تطبيقات وألعاب موبايل بهوية عربية في وقتي الخاص. بدأت بتعلم البرمجة ذاتيًا، وحاليًا أوسّع مساري نحو تحليل البيانات لأفتح طريقًا مهنيًا جديدًا.</p>
-        <p>أركّز في مشاريعي على تصميم بصري واضح، تجربة استخدام سلسة، ومحتوى يخاطب الجمهور العربي تحديدًا بدل ترجمة تجارب أجنبية.</p>
-        <div class="tags">
-          <span class="tag">Flutter</span>
-          <span class="tag">Riverpod</span>
-          <span class="tag">HTML5 / Canvas</span>
-          <span class="tag">SQL</span>
-          <span class="tag">تحليل البيانات</span>
-        </div>
-      </div>
-      <div class="path-line">
-        <div class="step"><b>البداية</b><span>تعلّم ذاتي للبرمجة وتطوير الألعاب بـ HTML5/Canvas</span></div>
-        <div class="step"><b>التوسّع</b><span>بناء تطبيقات Flutter بمعمارية Clean Architecture</span></div>
-        <div class="step"><b>الحالي</b><span>دراسة تحليل البيانات وSQL بالتوازي مع النشر على Google Play</span></div>
-        <div class="step"><b>القادم</b><span>الانتقال لمسار تحليل البيانات كعمل رئيسي</span></div>
-      </div>
-    </div>
-  </div>
-</section>
+<script>
+(function(){
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestValEl = document.getElementById('bestVal');
+  const overlay = document.getElementById('overlay');
+  const startBtn = document.getElementById('startBtn');
+  const zoneLeft = document.getElementById('zoneLeft');
+  const zoneRight = document.getElementById('zoneRight');
 
-<section class="section">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="kicker">دعم الموقع</span>
-      <h2>مساحة إعلانية</h2>
-      <p>هذا المكان مخصص لإعلانات AdSense أو روابط رعاية. ألصق كود الوحدة الإعلانية داخل هذا القسم في الكود المصدري.</p>
-    </div>
-    <div class="ad-slot">
-      <!-- ضع كود إعلانات AdSense هنا -->
-      مساحة إعلانية (سيتم استبدالها بكود AdSense)
-    </div>
-  </div>
-</section>
+  let W, H, LANES = 4, laneW;
+  function resize(){
+    W = canvas.width = Math.min(window.innerWidth, 480) * devicePixelRatio;
+    H = canvas.height = window.innerHeight * devicePixelRatio;
+    canvas.style.width = Math.min(window.innerWidth, 480) + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    laneW = W / LANES;
+  }
+  window.addEventListener('resize', resize);
+  resize();
 
-<section class="section" id="contact">
-  <div class="wrap">
-    <div class="contact-box">
-      <h2>عندك استفسار، دعم فني، أو فكرة تعاون؟</h2>
-      <div class="contact-actions">
-        <a href="mailto:alagshmq@gmail.com" class="btn btn-primary">راسلني بالإيميل</a>
-        <a href="https://wa.me/966559593729" target="_blank" rel="noopener" class="btn btn-ghost">واتساب</a>
-        <a href="https://www.instagram.com/da.ammar.alghashm" target="_blank" rel="noopener" class="btn btn-ghost">انستقرام</a>
-      </div>
-    </div>
-  </div>
-</section>
+  let best = parseInt(localStorage.getItem('neonDashBest') || '0', 10) || 0;
+  bestValEl.textContent = best;
 
-<footer>
-  <div class="wrap">
-    <span>© 2026 عمّار — جميع الحقوق محفوظة</span>
-    <span>جدّة، السعودية</span>
-  </div>
-</footer>
+  let player, obstacles, particles, score, speed, running, spawnTimer, animId;
 
+  function initGame(){
+    player = { lane: Math.floor(LANES/2), x: 0, y: 0, targetX: 0, w: laneW*0.55, h: laneW*0.55 };
+    player.x = player.targetX = laneW*player.lane + laneW/2;
+    player.y = H - laneW*1.4;
+    obstacles = [];
+    particles = [];
+    score = 0;
+    speed = H * 0.0055;
+    spawnTimer = 0;
+    running = true;
+    scoreEl.textContent = '0';
+  }
+
+  function spawnObstacle(){
+    const lane = Math.floor(Math.random()*LANES);
+    const colors = ['#ff2e92','#7c5cff','#00e5ff'];
+    obstacles.push({
+      lane, x: laneW*lane + laneW/2, y: -laneW*0.6,
+      w: laneW*0.62, h: laneW*0.42,
+      color: colors[Math.floor(Math.random()*colors.length)]
+    });
+  }
+
+  function addParticles(x,y,color){
+    for(let i=0;i<14;i++){
+      particles.push({
+        x, y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8,
+        life:1, color
+      });
+    }
+  }
+
+  function moveLane(dir){
+    if(!running) return;
+    player.lane = Math.max(0, Math.min(LANES-1, player.lane + dir));
+    player.targetX = laneW*player.lane + laneW/2;
+  }
+
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'ArrowLeft') moveLane(-1);
+    if(e.key === 'ArrowRight') moveLane(1);
+  });
+  zoneLeft.addEventListener('pointerdown', ()=>moveLane(-1));
+  zoneRight.addEventListener('pointerdown', ()=>moveLane(1));
+
+  let lastTime = 0;
+  function loop(t){
+    const dt = Math.min(32, t - lastTime); lastTime = t;
+    ctx.clearRect(0,0,W,H);
+
+    // lane dividers
+    ctx.strokeStyle = 'rgba(0,229,255,0.08)';
+    ctx.lineWidth = 2;
+    for(let i=1;i<LANES;i++){
+      ctx.beginPath();
+      ctx.moveTo(laneW*i, 0);
+      ctx.lineTo(laneW*i, H);
+      ctx.stroke();
+    }
+
+    if(running){
+      // player smooth move
+      player.x += (player.targetX - player.x) * 0.25;
+
+      // spawn
+      spawnTimer -= dt;
+      if(spawnTimer <= 0){
+        spawnObstacle();
+        spawnTimer = Math.max(420, 900 - score*4);
+      }
+
+      // update obstacles
+      for(let i = obstacles.length-1; i>=0; i--){
+        const o = obstacles[i];
+        o.y += speed * dt * 0.06;
+        if(o.y > H + o.h){
+          obstacles.splice(i,1);
+          score++;
+          scoreEl.textContent = score;
+          speed += 0.002;
+          continue;
+        }
+        // collision
+        if(o.lane === player.lane &&
+           o.y + o.h*0.4 > player.y - player.h*0.4 &&
+           o.y - o.h*0.4 < player.y + player.h*0.4){
+          running = false;
+          addParticles(player.x, player.y, '#00e5ff');
+          if(score > best){
+            best = score;
+            localStorage.setItem('neonDashBest', best);
+          }
+          setTimeout(showGameOver, 500);
+        }
+      }
+    }
+
+    // draw obstacles
+    obstacles.forEach(o=>{
+      ctx.save();
+      ctx.shadowColor = o.color;
+      ctx.shadowBlur = 22;
+      ctx.fillStyle = o.color;
+      roundRect(ctx, o.x - o.w/2, o.y - o.h/2, o.w, o.h, 10);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // particles
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+      if(p.life <= 0){ particles.splice(i,1); continue; }
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // player
+    ctx.save();
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 26;
+    ctx.fillStyle = '#00e5ff';
+    roundRect(ctx, player.x - player.w/2, player.y - player.h/2, player.w, player.h, 12);
+    ctx.fill();
+    ctx.restore();
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function showGameOver(){
+    bestValEl.textContent = best;
+    overlay.innerHTML = `
+      <h1 style="font-size:1.4rem;">انتهت الجولة</h1>
+      <div class="big">${score}</div>
+      <p>أفضل نتيجة: ${best}</p>
+      <button id="retryBtn">إعادة المحاولة</button>
+    `;
+    overlay.style.display = 'flex';
+    document.getElementById('retryBtn').addEventListener('click', ()=>{
+      overlay.style.display = 'none';
+      initGame();
+    });
+  }
+
+  startBtn.addEventListener('click', ()=>{
+    overlay.style.display = 'none';
+    initGame();
+  });
+
+  requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>
