@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NEON DASH — نيون داش</title>
+<style>
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    height:100%; overflow:hidden; background:#05060d;
+    font-family:'Tajawal','Segoe UI',sans-serif; color:#e8ecf4;
+    touch-action:none;
+  }
+  #wrap{
+    position:relative; width:100vw; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  canvas{
+    display:block; background:
+      radial-gradient(ellipse 700px 400px at 50% -10%, #1a1240 0%, transparent 60%),
+      #05060d;
+    touch-action:none;
+  }
+  #hud{
+    position:absolute; top:18px; left:0; right:0;
+    display:flex; justify-content:space-between; padding:0 22px;
+    pointer-events:none; z-index:5;
+  }
+  #score{font-size:1.5rem; font-weight:900; color:#00e5ff; text-shadow:0 0 14px #00e5ff88;}
+  #back{
+    position:absolute; top:16px; right:16px; z-index:10;
+    color:#8891a8; text-decoration:none; font-size:.85rem;
+    border:1px solid #232840; padding:7px 14px; border-radius:999px;
+    pointer-events:auto; background:#0a0c16cc;
+  }
+  #best{font-size:.85rem; color:#8891a8; text-align:left;}
+  #overlay{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    background:#05060dee; z-index:20; gap:18px; padding:20px;
+  }
+  #overlay h1{
+    font-size:clamp(1.8rem,7vw,2.6rem); font-weight:900;
+    background:linear-gradient(90deg,#00e5ff,#ff2e92);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:2px;
+  }
+  #overlay p{color:#8891a8; font-size:.95rem; max-width:320px; line-height:1.7;}
+  #overlay .big{font-size:2.4rem; font-weight:900; color:#fff;}
+  button{
+    font-family:inherit; font-size:1rem; font-weight:700;
+    padding:14px 38px; border-radius:12px; border:none; cursor:pointer;
+    background:linear-gradient(90deg,#00e5ff,#0091b3); color:#04141a;
+    box-shadow:0 8px 24px #00e5ff40;
+  }
+  #controls{
+    position:absolute; bottom:0; left:0; right:0; display:flex; z-index:8;
+    height:32%;
+  }
+  .zone{flex:1;}
+  .hint{
+    position:absolute; bottom:14px; left:0; right:0; text-align:center;
+    color:#4b5470; font-size:.78rem; pointer-events:none; z-index:6;
+  }
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="hud">
+    <div id="best">أفضل نتيجة: <span id="bestVal">0</span></div>
+    <div id="score">0</div>
+  </div>
+  <a id="back" href="../../index.html">← رجوع</a>
+  <div class="hint">اضغط يمين أو يسار الشاشة للتحرك، أو استخدم أسهم الكيبورد</div>
+  <div id="controls">
+    <div class="zone" id="zoneLeft"></div>
+    <div class="zone" id="zoneRight"></div>
+  </div>
+
+  <div id="overlay">
+    <h1>NEON DASH</h1>
+    <p>تفادَ الحواجز المضيئة وابقَ بالحياة أطول ما تقدر. السرعة تزيد كل ما ارتفعت نقاطك.</p>
+    <button id="startBtn">ابدأ اللعب</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestValEl = document.getElementById('bestVal');
+  const overlay = document.getElementById('overlay');
+  const startBtn = document.getElementById('startBtn');
+  const zoneLeft = document.getElementById('zoneLeft');
+  const zoneRight = document.getElementById('zoneRight');
+
+  let W, H, LANES = 4, laneW;
+  function resize(){
+    W = canvas.width = Math.min(window.innerWidth, 480) * devicePixelRatio;
+    H = canvas.height = window.innerHeight * devicePixelRatio;
+    canvas.style.width = Math.min(window.innerWidth, 480) + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    laneW = W / LANES;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  let best = parseInt(localStorage.getItem('neonDashBest') || '0', 10) || 0;
+  bestValEl.textContent = best;
+
+  let player, obstacles, particles, score, speed, running, spawnTimer, animId;
+
+  function initGame(){
+    player = { lane: Math.floor(LANES/2), x: 0, y: 0, targetX: 0, w: laneW*0.55, h: laneW*0.55 };
+    player.x = player.targetX = laneW*player.lane + laneW/2;
+    player.y = H - laneW*1.4;
+    obstacles = [];
+    particles = [];
+    score = 0;
+    speed = H * 0.0055;
+    spawnTimer = 0;
+    running = true;
+    scoreEl.textContent = '0';
+  }
+
+  function spawnObstacle(){
+    const lane = Math.floor(Math.random()*LANES);
+    const colors = ['#ff2e92','#7c5cff','#00e5ff'];
+    obstacles.push({
+      lane, x: laneW*lane + laneW/2, y: -laneW*0.6,
+      w: laneW*0.62, h: laneW*0.42,
+      color: colors[Math.floor(Math.random()*colors.length)]
+    });
+  }
+
+  function addParticles(x,y,color){
+    for(let i=0;i<14;i++){
+      particles.push({
+        x, y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8,
+        life:1, color
+      });
+    }
+  }
+
+  function moveLane(dir){
+    if(!running) return;
+    player.lane = Math.max(0, Math.min(LANES-1, player.lane + dir));
+    player.targetX = laneW*player.lane + laneW/2;
+  }
+
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'ArrowLeft') moveLane(-1);
+    if(e.key === 'ArrowRight') moveLane(1);
+  });
+  zoneLeft.addEventListener('pointerdown', ()=>moveLane(-1));
+  zoneRight.addEventListener('pointerdown', ()=>moveLane(1));
+
+  let lastTime = 0;
+  function loop(t){
+    const dt = Math.min(32, t - lastTime); lastTime = t;
+    ctx.clearRect(0,0,W,H);
+
+    // lane dividers
+    ctx.strokeStyle = 'rgba(0,229,255,0.08)';
+    ctx.lineWidth = 2;
+    for(let i=1;i<LANES;i++){
+      ctx.beginPath();
+      ctx.moveTo(laneW*i, 0);
+      ctx.lineTo(laneW*i, H);
+      ctx.stroke();
+    }
+
+    if(running){
+      // player smooth move
+      player.x += (player.targetX - player.x) * 0.25;
+
+      // spawn
+      spawnTimer -= dt;
+      if(spawnTimer <= 0){
+        spawnObstacle();
+        spawnTimer = Math.max(420, 900 - score*4);
+      }
+
+      // update obstacles
+      for(let i = obstacles.length-1; i>=0; i--){
+        const o = obstacles[i];
+        o.y += speed * dt * 0.06;
+        if(o.y > H + o.h){
+          obstacles.splice(i,1);
+          score++;
+          scoreEl.textContent = score;
+          speed += 0.002;
+          continue;
+        }
+        // collision
+        if(o.lane === player.lane &&
+           o.y + o.h*0.4 > player.y - player.h*0.4 &&
+           o.y - o.h*0.4 < player.y + player.h*0.4){
+          running = false;
+          addParticles(player.x, player.y, '#00e5ff');
+          if(score > best){
+            best = score;
+            localStorage.setItem('neonDashBest', best);
+          }
+          setTimeout(showGameOver, 500);
+        }
+      }
+    }
+
+    // draw obstacles
+    obstacles.forEach(o=>{
+      ctx.save();
+      ctx.shadowColor = o.color;
+      ctx.shadowBlur = 22;
+      ctx.fillStyle = o.color;
+      roundRect(ctx, o.x - o.w/2, o.y - o.h/2, o.w, o.h, 10);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // particles
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+      if(p.life <= 0){ particles.splice(i,1); continue; }
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // player
+    ctx.save();
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 26;
+    ctx.fillStyle = '#00e5ff';
+    roundRect(ctx, player.x - player.w/2, player.y - player.h/2, player.w, player.h, 12);
+    ctx.fill();
+    ctx.restore();
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function showGameOver(){
+    bestValEl.textContent = best;
+    overlay.innerHTML = `
+      <h1 style="font-size:1.4rem;">انتهت الجولة</h1>
+      <div class="big">${score}</div>
+      <p>أفضل نتيجة: ${best}</p>
+      <button id="retryBtn">إعادة المحاولة</button>
+    `;
+    overlay.style.display = 'flex';
+    document.getElementById('retryBtn').addEventListener('click', ()=>{
+      overlay.style.display = 'none';
+      initGame();
+    });
+  }
+
+  startBtn.addEventListener('click', ()=>{
+    overlay.style.display = 'none';
+    initGame();
+  });
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
